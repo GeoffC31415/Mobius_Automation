@@ -1,30 +1,24 @@
+from __future__ import print_function
 import time
 import PullReading
+import InfluxHandler
 import pprint
 from influxdb import InfluxDBClient
 from datetime import datetime as dt
 
 pp = pprint.PrettyPrinter(indent=4)
 
-# InFlux DB variables for storing data points
-host = "localhost"
-port = 8086
-dbname = "Mobius"
 session = "vivarium"
 runNo = dt.now().strftime("%Y%m%d%H%M")
 
-delay = 10 # Extra delay on top of ~40seconds for sensor readings
- 
-# Create the InfluxDB object as root
-client = InfluxDBClient(host=host, port=port, database=dbname)
+delay = 10 # Extra delay per loop
 
-while True:
+def form_reading_set():
 	# Gather readings
-	print str(time.ctime()) + "    Starting reading cycle..."
+	print(str(time.ctime()) + "    Starting reading cycle...")
 	
 	DHTs = [PullReading.GetDHTReading(i) for i in [1,2,4]]
 	waterTemp	= PullReading.GetReading(6) #One-wire, just outside log
-	iso 		= time.ctime()
 
 	# Form JSON
 	json_body = [
@@ -49,7 +43,7 @@ while True:
 				
 			json_body[0]['fields'][sensor_name] = readings[0]
 		# Temperatures (under 12 is an error)
-		if readings[1] > 13:
+		if readings[1] > 12:
 			if i==2:
 				sensor_name="DHT4_Temp"
 			else:
@@ -58,13 +52,18 @@ while True:
 			json_body[0]['fields'][sensor_name] = readings[1]
 		
 	pp.pprint(json_body[0]['fields'])
-	try:
-		client.write_points(json_body)
-		print str(iso) + "    Sensor Data Written to InfluxDB"
-	except:
-		#client.close()
-		print(str(time.ctime()) + "    Couldn't write to InFlux this pass")
-		client = InfluxDBClient(host=host, port=port, database=dbname)
+	return json_body
+
+def write_points(data):
+	InfluxHandler.write(data)
+	print(str(time.ctime()) + "    Sensor Data Written to InfluxDB")
+
+def main(args):
+	while True:
+		readings = form_reading_set()
+		InfluxHandler.write(readings)
+		time.sleep(delay)
 	
-	# Wait for next sample
-	time.sleep(delay)
+if __name__ == '__main__':
+    import sys
+    sys.exit(main(sys.argv))

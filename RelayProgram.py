@@ -3,8 +3,8 @@ import RPi.GPIO as GPIO
 import time
 import os
 import thread
-from influxdb import InfluxDBClient
-from picamera import PiCamera
+import InfluxHandler
+#from picamera import PiCamera
 from datetime import datetime as dt
 from datetime import timedelta as td
 
@@ -35,9 +35,6 @@ relay_status = {
 	'relay4': 0
 } # 1 on 0 off
 
-# Create the InfluxDB object
-client = InfluxDBClient("localhost", 8086, database="Mobius")
-
 def archivePhoto(curfile,arcfile):
 	try:
 		os.rename(curfile, arcfile)
@@ -63,7 +60,7 @@ def getLightStatus(curtime):
 		result = ((curtime.hour >= MORNING_LIGHT_ON) or (curtime.hour < EVENING_LIGHT_OFF))
 	return result
 	
-def getHeaterStatus(target):
+def getHeaterStatus():
 	""" Thermostat function. Queries temperature using Influx client, and compares to target.
 	Seeing as the target temp lags heatpad, we want to enable immediately depending on target.
 	
@@ -76,10 +73,10 @@ def getHeaterStatus(target):
 	"""
 	
 	try:
-		result1 = client.query(TEMPNOW)
+		result1 = InfluxHandler.read(TEMPNOW)
 		temp_now = list(result1.get_points())
 		
-		if temp_now[0]['Water_Temp'] <= target:
+		if temp_now[0]['Water_Temp'] <= TARGET_LOG_TEMP:
 			retval = True
 		else:
 			retval = False
@@ -123,15 +120,10 @@ def influxlog(measurementstr, state):
 	}]
 
 	write_error = False
-	try:
-		client.write_points(json_body)
-	except:
-		write_error = True
-		print(str(time.ctime()) + "    Couldn't write to InFlux this pass")
+	InfluxHandler.write(json_body)
 	return  write_error
 
-def main(args): 
-	
+def init_relays():
 	# Set up General Purpose IO
 	GPIO.setmode(GPIO.BCM)
 	GPIO.setwarnings(False)
@@ -144,12 +136,16 @@ def main(args):
 		influxlog('{}_status'.format(key),False)
 		
 	# Initialise camera
-	try:
-		camera = PiCamera()
-		camera.rotation = 180
-		nextphototime = dt.now()
-	except:
-		print(str(time.ctime()) + "    Could not initialise camera")
+	#try:
+	#	camera = PiCamera()
+	#	camera.rotation = 180
+	#	nextphototime = dt.now()
+	#except:
+	#	print(str(time.ctime()) + "    Could not initialise camera")
+
+def main(args): 
+	
+	init_relays()
 	
 	# Primary loop
 	while 1:
@@ -158,25 +154,21 @@ def main(args):
 		# Set all main relays
 		write_error = False
 		write_error = set_relay('lamp', getLightStatus(curdt))
-		write_error |= set_relay('heatpad_backwall', getHeaterStatus(TARGET_LOG_TEMP))
-		write_error |= set_relay('heatpad_underlog', getHeaterStatus(TARGET_LOG_TEMP))
-		
-		if write_error:
-			#os.system("sudo /etc/init.d/influxdb restart")
-			client = InfluxDBClient("localhost", 8086, database="Mobius")
+		write_error |= set_relay('heatpad_backwall', getHeaterStatus())
+		write_error |= set_relay('heatpad_underlog', getHeaterStatus())
 			
 		# Take photo if the interval has passed
-		if curdt > nextphototime:
-			if True:
-				curfile = '/var/www/html/Mobius_Website/images/image_recent.jpg'
-				arcfile = '/var/www/html/Mobius_Website/images/archive/image_' + time.strftime("%Y%m%d%H%M%S") + '.jpg'
-				archivePhoto(curfile,arcfile)
-				try:
-					camera.capture(curfile)
-					print(str(time.ctime()) + '        IMAGE CAPTURED            ')
-				except:
-					print(str(time.ctime()) + '        Could not take picture            ')
-				nextphototime = curdt + td(hours=PICTUREINTERVALHRS)
+		#if curdt > nextphototime:
+		#	if True:
+		#		curfile = '/var/www/html/Mobius_Website/images/image_recent.jpg'
+		#		arcfile = '/var/www/html/Mobius_Website/images/archive/image_' + time.strftime("%Y%m%d%H%M%S") + '.jpg'
+		#		archivePhoto(curfile,arcfile)
+		#		try:
+		#			camera.capture(curfile)
+		#			print(str(time.ctime()) + '        IMAGE CAPTURED            ')
+		#		except:
+		#			print(str(time.ctime()) + '        Could not take picture            ')
+		#		nextphototime = curdt + td(hours=PICTUREINTERVALHRS)
 				
 		time.sleep(30)
 
