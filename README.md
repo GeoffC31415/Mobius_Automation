@@ -20,7 +20,7 @@ You can set error filters here for the sensors (humidity must be <100% for examp
 
 This file contains the functions for determining timings for lighting, thermostat settings, and the lower level functions for setting individual devices. It also imports InfluxHandler for reading capture from the database, and also writing the states of the devices on change. Note - this no longer controls the Pi Camera which instead is handled by a seperate service not in the repo, for snapshots and motion capture. Designed to be imported, but can also run independently from a terminal for device control only. Note - this will quickly result in heaters being fixed as on, if the database isn't updated too.
 
-You can set target tempss for heaters, timing for lights, and also pin mappings here.
+You can set target temps for heaters, timing for lights, and also pin mappings for relays here.
 
 4. InfluxHandler.py
 
@@ -28,6 +28,12 @@ This file contains simple wrapper functions for DB handling. Note - this databas
 
 You can set the DB connection details here, except password handling.
 
-5. TakePicture.py
+5. PullReading.py
+
+Contains all the specific sensor handling. Supports DHT11's, and the custom high precision heat sensor which drives the thermostat control.
+
+You can set pin mappings to the sensors, as well as the amount of jitter to apply to the integers received from the DHT11's (allows the ability to distinguish individual readings, instead of just a straight line).
+
+6. TakePicture.py
 
 This is a simple test script for manual photo taking. Simply dumps a photo to Pi desktop when run from terminal.
