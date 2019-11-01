@@ -55,12 +55,12 @@ def GetDHTReading(sensorID):
 	temp_reading = -1
 		
 	if sensorID <= len(DHT_Pins):
-		# Get median of four
+		# Seeing as we filter later on anyway, can get better response times without averaging
 		humarray = []
 		temparray = []
 		readpin = DHT_Pins[sensorID-1]
 		
-		for x in range(0,3):
+		for x in range(1):
 			humidity, temperature = Adafruit_DHT.read_retry(sensor_DHT11, readpin)
 			if humidity is not None:
 				hum_reading = humidity
@@ -71,8 +71,8 @@ def GetDHTReading(sensorID):
 		
 		humarray.sort()
 		temparray.sort()
-		hum_reading = humarray[1] #middle of three
-		temp_reading = temparray[1] #middle of three
+		hum_reading = humarray[0] #middle of three
+		temp_reading = temparray[0] #middle of three
 		
 		hum_reading += random.normalvariate(0,DHT_JITTER)
 		temp_reading += random.normalvariate(0,DHT_JITTER)
