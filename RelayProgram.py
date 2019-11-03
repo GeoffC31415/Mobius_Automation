@@ -4,63 +4,76 @@ import time
 import os
 import thread
 import InfluxHandler
-#from picamera import PiCamera
 from datetime import datetime as dt
 from datetime import timedelta as td
 
-#
-# Key parameters for climate control
-#
-
-TARGET_LOG_TEMP    = 31 # Degrees celsius
-MORNING_LIGHT_ON   = 8  # Hour of the day
-EVENING_LIGHT_OFF  = 22 # Hour of the day
-PICTUREINTERVALHRS = 1  # Hours between photos
 
 # Query to get recent average temp
 TEMPQRY      = 'select mean(Water_Temp) from vivarium where time > now() - 5m'
 TEMPNOW		 = 'select Water_Temp from vivarium order by time desc limit 1'
 
 # Order here is relay 1 to 4
-RELAY_PINS   = {
+device_pins   = {
 	'lamp': 26,
 	'heatpad_backwall': 19,
 	'heatpad_underlog': 13,
-	'relay4': 6
+	'mains_relay4': 6,
+	'led_lights': 12,
+	'fountain': 16,
+	'lowvolt_relay3': 20,
+	'lowvolt_relay4': 21
 }
-relay_status = {
+device_status = {
 	'lamp': 0,
 	'heatpad_backwall': 0,
 	'heatpad_underlog': 0,
-	'relay4': 0
+	'mains_relay4': 0,
+	'led_lights': 0,
+	'fountain': 0,
+	'lowvolt_relay3': 0,
+	'lowvolt_relay4': 0	
 } # 1 on 0 off
 
-def archivePhoto(curfile,arcfile):
-	try:
-		os.rename(curfile, arcfile)
-	except:
-		print(str(time.ctime()) + '    File rename failed')
-
-def getLightStatus(curtime):
-	""" Light timer function. Determines the target state of the light 
-		given a time. Works for both morning/evening and also overnight
-		timings.
+def set_timer_devices(settings):
+	for period in settings:
+		s = settings[period]
+		status = inPeriod(dt.now(),s['on'])
+		for d in s['devices']:
+			set_relay(d, status)
+			
+def set_thermo_devices(settings):
+	for devblock in settings:
+		s = settings[devblock]
+		status = getHeaterStatus(s['target'])
+		for d in s['devices']:
+			set_relay(d, status)
+	
+def inPeriod(t, time_tuple):
+	""" Determine whether t is inside or outside of a time period tuple.
+	e.g. (8,22) would return false for 07:59, true for 08:00, true for
+	21:59 and false for 22:00.
+	
+	Works for overnight (across midnight time reset) if the second entry 
+	is smaller than the first
 	
 	Arguments:
-		curtime (datetime) - The time to evaluate the light status at
+		t (datetime) - The time to evaluate the time tuple at
+		time_tuple (2-tuple, ints) - Block of time left-inclusive
 		
 	Returns:
-		bool - True if the light should be on given the global on, off hours
+		bool - True if we are inside the time period
 			   False otherwise
 	"""
 	
-	if MORNING_LIGHT_ON < EVENING_LIGHT_OFF:
-		result = ((curtime.hour >= MORNING_LIGHT_ON) and (curtime.hour < EVENING_LIGHT_OFF))
+	t1, t2 = time_tuple
+	
+	if t1 < t2:
+		result = ((t.hour >= t1) and (t.hour < t2))
 	else:
-		result = ((curtime.hour >= MORNING_LIGHT_ON) or (curtime.hour < EVENING_LIGHT_OFF))
+		result = ((t.hour >= t2) or (t.hour < t1))
 	return result
 	
-def getHeaterStatus():
+def getHeaterStatus(target):
 	""" Thermostat function. Queries temperature using Influx client, and compares to target.
 	Seeing as the target temp lags heatpad, we want to enable immediately depending on target.
 	
@@ -76,7 +89,7 @@ def getHeaterStatus():
 		result1 = InfluxHandler.read(TEMPNOW)
 		temp_now = list(result1.get_points())
 		
-		if temp_now[0]['Water_Temp'] <= TARGET_LOG_TEMP:
+		if temp_now[0]['Water_Temp'] <= target:
 			retval = True
 		else:
 			retval = False
@@ -89,26 +102,26 @@ def set_relay(device, status):
 	""" Set a given relay
 	
 	Arguments:
-		device - Key in the relay dictionary in RELAY_PINS
+		device - Key in the relay dictionary in device_pins
 		status - True for relay closed, false for relay open
 		
 	Returns:
-		bool - True if there was an error accessing the DB, False otherwise
+		bool - False if there was an error accessing the DB, true otherwise
 	"""
-	global relay_status
+	global device_status
 	write_error = False
 	
-	if status != relay_status[device]:
+	if status != device_status[device]:
 		if status:
-			GPIO.output(RELAY_PINS[device], GPIO.LOW)
+			GPIO.output(device_pins[device], GPIO.LOW)
 			print(str(time.ctime()) + '        {} ON           '.format(device))
 		else:
-			GPIO.output(RELAY_PINS[device], GPIO.HIGH)
+			GPIO.output(device_pins[device], GPIO.HIGH)
 			print(str(time.ctime()) + '        {} OFF          '.format(device))
-		relay_status[device] = status
+		device_status[device] = status
 		time.sleep(1)
 	write_error = influxlog('{}_status'.format(device),status)
-	return write_error
+	return not write_error
 
 def influxlog(measurementstr, state):
 	"""Add it into InfluxDB"""
@@ -118,10 +131,10 @@ def influxlog(measurementstr, state):
 			measurementstr : bool(state)
 		}
 	}]
-
-	write_error = False
-	InfluxHandler.write(json_body)
-	return  write_error
+	try:
+		InfluxHandler.write(json_body)
+		return True
+	except: return False
 
 def init_relays():
 	# Set up General Purpose IO
@@ -130,18 +143,11 @@ def init_relays():
 	
 	# Initialise relays
 	print(str(time.ctime()) + '    Initialising all outputs to off...')
-	for key in RELAY_PINS:
-		GPIO.setup(RELAY_PINS[key], GPIO.OUT)
-		GPIO.output(RELAY_PINS[key], GPIO.HIGH)
+	for key in device_pins:
+		GPIO.setup(device_pins[key], GPIO.OUT)
+		GPIO.output(device_pins[key], GPIO.HIGH)
 		influxlog('{}_status'.format(key),False)
 		
-	# Initialise camera
-	#try:
-	#	camera = PiCamera()
-	#	camera.rotation = 180
-	#	nextphototime = dt.now()
-	#except:
-	#	print(str(time.ctime()) + "    Could not initialise camera")
 
 def main(args): 
 	
@@ -152,10 +158,9 @@ def main(args):
 		curdt = dt.now()
 		
 		# Set all main relays
-		write_error = False
-		write_error = set_relay('lamp', getLightStatus(curdt))
-		write_error |= set_relay('heatpad_backwall', getHeaterStatus())
-		write_error |= set_relay('heatpad_underlog', getHeaterStatus())
+		set_relay('lamp', getLightStatus(curdt))
+		set_relay('heatpad_backwall', getHeaterStatus())
+		set_relay('heatpad_underlog', getHeaterStatus())
 			
 		# Take photo if the interval has passed
 		#if curdt > nextphototime:

@@ -5,6 +5,22 @@ import InFluxLogger
 from datetime import datetime as dt
 from datetime import timedelta as td
 
+TIME_SETTINGS = {
+	'daylight': {
+		'on': (8,22),
+		'devices': ['lamp', 'led_lights']
+	},
+	'rains': {
+		'on': (18,24),
+		'devices': ['fountain']
+	}
+}
+THERMO_SETTINGS = {
+	'main': {
+		'target': 31,
+		'devices': ['heatpad_backwall','heatpad_underlog']
+	}
+}
 
 def main(args):
 		
@@ -17,16 +33,12 @@ def main(args):
 
 	while True:
 		if dt.now() > (last_relay + td(seconds=relay_pause)):
-			# Set all main relays
-			write_error = False
-			write_error = RelayProgram.set_relay("lamp", RelayProgram.getLightStatus(dt.now()))
-			write_error |= RelayProgram.set_relay("heatpad_backwall", RelayProgram.getHeaterStatus())
-			write_error |= RelayProgram.set_relay("heatpad_underlog", RelayProgram.getHeaterStatus())
+			RelayProgram.set_timer_devices(TIME_SETTINGS)
+			RelayProgram.set_thermo_devices(THERMO_SETTINGS)
 			last_relay = dt.now()
 			
 		if dt.now() > (last_log + td(seconds=logging_pause)):
-			readings = InFluxLogger.form_reading_set()
-			InFluxLogger.write_points(readings)
+			InFluxLogger.write_points(InFluxLogger.form_reading_set())
 			last_log = dt.now()
 			
 		time.sleep(1)

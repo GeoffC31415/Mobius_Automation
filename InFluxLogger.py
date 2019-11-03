@@ -34,29 +34,31 @@ def form_reading_set():
 	# Do humidities seperately as they can be over 100
 	# We want blanks in those cases where it's out of range
 	for i, readings in enumerate(DHTs):
+		if i==2:
+			sensor_hum="DHT4_Hum"
+			sensor_temp="DHT4_Temp"
+		else:
+			sensor_hum="DHT{}_Hum".format(i+1)
+			sensor_temp="DHT{}_Temp".format(i+1)
+				
 		# Humidities (accept 30-100)
 		if readings[0] < 100 and readings[0] > 35:
-			if i==2:
-				sensor_name="DHT4_Hum"
-			else:
-				sensor_name="DHT{}_Hum".format(i+1)
-				
-			json_body[0]['fields'][sensor_name] = readings[0]
+			json_body[0]['fields'][sensor_hum] = readings[0]
+		else:
+			print(str(time.ctime()) + "    Discarded reading: " + sensor_hum + ": " + str(readings[0]))
+			
 		# Temperatures (under 12 is an error)
 		if readings[1] > 12:
-			if i==2:
-				sensor_name="DHT4_Temp"
-			else:
-				sensor_name="DHT{}_Temp".format(i+1)
-				
-			json_body[0]['fields'][sensor_name] = readings[1]
+			json_body[0]['fields'][sensor_temp] = readings[1]
+		else:
+			print(str(time.ctime()) + "    Discarded reading: " + sensor_temp + ": " + str(readings[1]))
 		
 	pp.pprint(json_body[0]['fields'])
 	return json_body
 
 def write_points(data):
-	InfluxHandler.write(data)
-	print(str(time.ctime()) + "    Sensor Data Written to InfluxDB")
+	if InfluxHandler.write(data):
+		print(str(time.ctime()) + "    Sensor Data Written to InfluxDB")
 
 def main(args):
 	while True:
