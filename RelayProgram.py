@@ -7,6 +7,7 @@ import InfluxHandler
 from datetime import datetime as dt
 from datetime import timedelta as td
 
+verbose = False
 
 # Query to get recent average temp
 TEMPQRY      = 'select mean(Water_Temp) from vivarium where time > now() - 5m'

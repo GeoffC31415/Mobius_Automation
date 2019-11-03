@@ -10,12 +10,13 @@ pp = pprint.PrettyPrinter(indent=4)
 
 session = "vivarium"
 runNo = dt.now().strftime("%Y%m%d%H%M")
-
+verbose = False
 delay = 10 # Extra delay per loop
 
 def form_reading_set():
 	# Gather readings
-	print(str(time.ctime()) + "    Starting reading cycle...")
+	if verbose:
+		print(str(time.ctime()) + "    Starting reading cycle...")
 	
 	DHTs = [PullReading.GetDHTReading(i) for i in [1,2,4]]
 	waterTemp	= PullReading.GetReading(6) #One-wire, just outside log
@@ -45,20 +46,26 @@ def form_reading_set():
 		if readings[0] < 100 and readings[0] > 35:
 			json_body[0]['fields'][sensor_hum] = readings[0]
 		else:
-			print(str(time.ctime()) + "    Discarded reading: " + sensor_hum + ": " + str(readings[0]))
+			if verbose:
+				print(str(time.ctime()) + "    Discarded reading: " + sensor_hum + ": " + str(readings[0]))
 			
 		# Temperatures (under 12 is an error)
 		if readings[1] > 12:
 			json_body[0]['fields'][sensor_temp] = readings[1]
 		else:
-			print(str(time.ctime()) + "    Discarded reading: " + sensor_temp + ": " + str(readings[1]))
+			if verbose:
+				print(str(time.ctime()) + "    Discarded reading: " + sensor_temp + ": " + str(readings[1]))
 		
-	pp.pprint(json_body[0]['fields'])
+	if verbose:
+		pp.pprint(json_body[0]['fields'])
 	return json_body
 
 def write_points(data):
 	if InfluxHandler.write(data):
-		print(str(time.ctime()) + "    Sensor Data Written to InfluxDB")
+		if verbose:
+			print(str(time.ctime()) + "    Sensor Data Written to InfluxDB")
+	else:
+		print(str(time.ctime()) + "    Problem  writing sensor data to InfluxDB")
 
 def main(args):
 	while True:

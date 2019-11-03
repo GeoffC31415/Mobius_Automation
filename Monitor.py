@@ -33,15 +33,15 @@ def main(args):
 
 	while True:
 		if dt.now() > (last_relay + td(seconds=relay_pause)):
+			last_relay = dt.now()
 			RelayProgram.set_timer_devices(TIME_SETTINGS)
 			RelayProgram.set_thermo_devices(THERMO_SETTINGS)
-			last_relay = dt.now()
 			
 		if dt.now() > (last_log + td(seconds=logging_pause)):
-			InFluxLogger.write_points(InFluxLogger.form_reading_set())
 			last_log = dt.now()
+			InFluxLogger.write_points(InFluxLogger.form_reading_set())
 			
-		time.sleep(1)
+		time.sleep(0.1)
 
 if __name__ == '__main__':
     import sys
