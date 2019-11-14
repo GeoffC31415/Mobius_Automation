@@ -162,19 +162,6 @@ def main(args):
 		set_relay('lamp', getLightStatus(curdt))
 		set_relay('heatpad_backwall', getHeaterStatus())
 		set_relay('heatpad_underlog', getHeaterStatus())
-			
-		# Take photo if the interval has passed
-		#if curdt > nextphototime:
-		#	if True:
-		#		curfile = '/var/www/html/Mobius_Website/images/image_recent.jpg'
-		#		arcfile = '/var/www/html/Mobius_Website/images/archive/image_' + time.strftime("%Y%m%d%H%M%S") + '.jpg'
-		#		archivePhoto(curfile,arcfile)
-		#		try:
-		#			camera.capture(curfile)
-		#			print(str(time.ctime()) + '        IMAGE CAPTURED            ')
-		#		except:
-		#			print(str(time.ctime()) + '        Could not take picture            ')
-		#		nextphototime = curdt + td(hours=PICTUREINTERVALHRS)
 				
 		time.sleep(30)
 

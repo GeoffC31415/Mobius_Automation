@@ -1,7 +1,8 @@
-from __future__ import print_function
-import time
 import RelayProgram
 import InFluxLogger
+import FileHandler
+import time
+
 from datetime import datetime as dt
 from datetime import timedelta as td
 
@@ -11,7 +12,7 @@ TIME_SETTINGS = {
 		'devices': ['lamp', 'led_lights']
 	},
 	'rains': {
-		'on': (18,24),
+		'on': (10,22),
 		'devices': ['fountain']
 	}
 }
@@ -26,8 +27,10 @@ def main(args):
 		
 	logging_pause = 10
 	relay_pause = 30
+	filetrim_pause = 3600
 	last_log = dt(2019,1,1)
 	last_relay = dt(2019,1,1)
+	last_filetrim = dt(2019,1,1)
 	
 	RelayProgram.init_relays()
 
@@ -40,6 +43,10 @@ def main(args):
 		if dt.now() > (last_log + td(seconds=logging_pause)):
 			last_log = dt.now()
 			InFluxLogger.write_points(InFluxLogger.form_reading_set())
+			
+		if dt.now() > (last_filetrim + td(seconds=filetrim_pause)):
+			last_filetrim = dt.now()
+			FileHandler.cleanVideos(minhr=6, maxhr=20, maxsize=3e6)
 			
 		time.sleep(0.1)
 
