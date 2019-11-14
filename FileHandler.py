@@ -58,5 +58,19 @@ def cleanVideos(minhr, maxhr, maxsize):
 	f2 = filterT(f, minhr, maxhr)
 	f3 = filterS(f, maxsize)
 	f4 = filterA(f, td(days=14))
-	print(str(time.ctime()) + '    Found {} videos, {} during day, {} below size limit, {} older than 14 days'.format(len(f),len(f2),len(f3),len(f4)))
-	removeFiles(f4+f3+f2)
+	
+	log = ''
+	filecount = 0
+	if len(f2) > 0:
+		log += ', removing {} during day'.format(len(f2))
+		filecount += len(f2)
+	if len(f3) > 0:
+		log += ', removing {} below size limit'.format(len(f3))
+		filecount += len(f3)
+	if len(f4) > 0:
+		log += ', removing {} older than two weeks'.format(len(f4))
+		filecount += len(f4)
+	if filecount > 0:
+		log += ', {} total'.format(filecount)
+		print(str(time.ctime()) + '    Checked {} videos'.format(len(f)) + log)
+		removeFiles(f4+f3+f2)
