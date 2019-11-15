@@ -1,9 +1,6 @@
 from __future__ import print_function
 from influxdb import InfluxDBClient
 import time
-import pprint
-
-pp = pprint.PrettyPrinter(indent=4)
 
 # InFlux DB variables for storing data points
 host = "localhost"
@@ -19,7 +16,6 @@ def write(data):
 		return True
 	except:
 		print(str(time.ctime()) + "    Error writing data to influx")
-		pp.pprint(data[0]['fields'])
 		return False
 
 def read(qry):
