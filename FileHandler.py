@@ -8,7 +8,7 @@ sourcePath = '/var/www/html/Mobius_Website/images/'
 maxage_days = 14
 
 def get_mp4s():
-	return glob.glob(sourcePath + '*.mp4')
+	return set(glob.glob(sourcePath + '*.mp4'))
 	
 def filterT(filelist, minhr, maxhr):
 	"""Returns entries from filterlist which were taken between
@@ -23,7 +23,7 @@ def filterT(filelist, minhr, maxhr):
 		if f_hr >= minhr and f_hr < maxhr:
 			intime.append(f)
 			totalsize += os.path.getsize(f)
-	return intime, totalsize/1024
+	return set(intime), totalsize/1024
 	
 def filterS(filelist, maxsize):
 	""" Returns entries which are smaller than maxsize in bytes.
@@ -35,7 +35,7 @@ def filterS(filelist, maxsize):
 		if size < maxsize:
 			insize.append(f)
 			totalsize += os.path.getsize(f)
-	return insize, totalsize/1024
+	return set(insize), totalsize/1024
 	
 def filterA(filelist, agelimit):
 	"""Returns entries which are older than the agelimit from now.
@@ -48,7 +48,7 @@ def filterA(filelist, agelimit):
 		if filedate < (dt.now() - agelimit):
 			oldfiles.append(f)
 			totalsize += os.path.getsize(f)
-	return oldfiles, totalsize/1024
+	return set(oldfiles), totalsize/1024
 	
 def removeFiles(filelist):
 	n = 0
@@ -57,14 +57,14 @@ def removeFiles(filelist):
 			os.remove(f)
 			n += 1
 		except:
-			print(str(time.ctime()) + 'Could not remove file ' + f)
+			print(str(time.ctime()) + '        Could not remove file ' + f)
 	print(str(time.ctime()) + '    Removed {} files'.format(n))
 
 def cleanVideos(minhr, maxhr, maxsize):
 	f = get_mp4s()
 	f2, s2 = filterT(f, minhr, maxhr)
-	f3, s3 = filterS(f, maxsize)
-	f4, s4 = filterA(f, td(days=maxage_days))
+	f3, s3 = filterS(f-f2, maxsize)
+	f4, s4 = filterA(f-f2-f3, td(days=maxage_days))
 	
 	log = ''
 	filecount = 0
@@ -79,4 +79,4 @@ def cleanVideos(minhr, maxhr, maxsize):
 		filecount += len(f4)
 	if filecount > 0:
 		print(str(time.ctime()) + '    Checked {} videos'.format(len(f)) + log)
-		removeFiles(f4+f3+f2)
+		removeFiles(f4|f3|f2)

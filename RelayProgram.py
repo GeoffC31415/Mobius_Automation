@@ -71,7 +71,7 @@ def inPeriod(t, time_tuple):
 	if t1 < t2:
 		result = ((t.hour >= t1) and (t.hour < t2))
 	else:
-		result = ((t.hour >= t2) or (t.hour < t1))
+		result = ((t.hour >= t1) or (t.hour < t2))
 	return result
 	
 def getHeaterStatus(target):

@@ -12,7 +12,7 @@ TIME_SETTINGS = {
 		'devices': ['lamp', 'led_lights']
 	},
 	'rains': {
-		'on': (10,22),
+		'on': (1,23),
 		'devices': ['fountain']
 	}
 }
