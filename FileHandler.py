@@ -61,22 +61,38 @@ def removeFiles(filelist):
 	print(str(time.ctime()) + '    Removed {} files'.format(n))
 
 def cleanVideos(minhr, maxhr, maxsize):
-	f = get_mp4s()
-	f2, s2 = filterT(f, minhr, maxhr)
-	f3, s3 = filterS(f-f2, maxsize)
-	f4, s4 = filterA(f-f2-f3, td(days=maxage_days))
+	remaining_files = get_mp4s()
+	totalfilecount = len(remaining_files)
+	
+	filterfuncs = [
+		{
+			'function': filterT,
+			'condition': (minhr, maxhr),
+			'desc': '\n' + str(time.ctime()) + '        Removing {} during day, {} KB'
+		},
+		{
+			'function': filterS,
+			'condition': (maxsize,),
+			'desc': '\n' + str(time.ctime()) + '        Removing {} below size limit, {} KB'
+		},
+		{
+			'function': filterA,
+			'condition': (td(days=maxage_days),),
+			'desc': '\n' + str(time.ctime()) + '        Removing {} old files, {} KB'
+		}
+	]
 	
 	log = ''
 	filecount = 0
-	if len(f2) > 0:
-		log += '\n' + str(time.ctime()) + '        Removing {} during day, {} KB'.format(len(f2), s2)
-		filecount += len(f2)
-	if len(f3) > 0:
-		log += '\n' + str(time.ctime()) + '        Removing {} below size limit, {} KB'.format(len(f3), s3)
-		filecount += len(f3)
-	if len(f4) > 0:
-		log += '\n' + str(time.ctime()) + '        Removing {} older than {} days, {} KB'.format(len(f4), maxage_days, s4)
-		filecount += len(f4)
-	if filecount > 0:
-		print(str(time.ctime()) + '    Checked {} videos'.format(len(f)) + log)
-		removeFiles(f4|f3|f2)
+	removals = []
+	for func_obj in filterfuncs:
+		f, s = func_obj['function'](remaining_files, *func_obj['condition'])
+		if len(f) > 0:
+			log += func_obj['desc'].format(len(f), s)
+		
+		filecount += len(f)
+		removals += f
+		remaining_files -= f
+		
+	print(str(time.ctime()) + '    Checked {} videos'.format(totalfilecount) + log)
+	removeFiles(removals)
