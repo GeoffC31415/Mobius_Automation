@@ -50,6 +50,17 @@ def filterA(filelist, agelimit):
 			totalsize += os.path.getsize(f)
 	return set(oldfiles), totalsize/1024
 	
+def get_total_size(startdate, enddate):
+	""" Takes datetime start and end, returns size of all files between
+	those times. Example filename 39-20191121013836.mp4"""
+	filelist = get_mp4s()
+	totalsize = 0
+	for f in filelist:
+		filedate = dt.fromtimestamp(os.path.getmtime(f))
+		if (filedate > startdate) and (filedate < enddate):
+			totalsize += os.path.getsize(f)
+	return totalsize
+	
 def removeFiles(filelist):
 	n = 0
 	for f in filelist:

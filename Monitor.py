@@ -28,6 +28,7 @@ def main(args):
 	logging_pause = 10
 	relay_pause = 30
 	filetrim_pause = 3600
+	
 	last_log = dt(2019,1,1)
 	last_relay = dt(2019,1,1)
 	last_filetrim = dt(2019,1,1)
@@ -46,6 +47,12 @@ def main(args):
 			
 		if dt.now() > (last_filetrim + td(seconds=filetrim_pause)):
 			last_filetrim = dt.now()
+			
+			startdate = dt.now() - td(days=1)
+			enddate = dt.now()
+			totalsize = FileHandler.get_total_size(startdate, enddate)
+			InFluxLogger.log_filesize_json(totalsize)
+			
 			FileHandler.cleanVideos(minhr=6, maxhr=20, maxsize=3e6)
 			
 		time.sleep(0.1)

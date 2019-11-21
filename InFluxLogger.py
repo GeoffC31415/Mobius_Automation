@@ -13,6 +13,18 @@ runNo = dt.now().strftime("%Y%m%d%H%M")
 verbose = False
 delay = 10 # Extra delay per loop
 
+def log_filesize_json(size):
+	json_body = [
+		{
+		  "measurement": session,
+		  "tags": {"run": runNo},
+		  "fields": {
+			  "videosize" : float(size)
+		  }
+		}
+	]
+	write_points(json_body)
+
 def form_reading_set():
 	# Gather readings
 	if verbose:
