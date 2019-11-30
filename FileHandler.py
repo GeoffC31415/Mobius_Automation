@@ -52,7 +52,7 @@ def filterA(filelist, agelimit):
 	
 def get_total_size(startdate, enddate):
 	""" Takes datetime start and end, returns size of all files between
-	those times. Example filename 39-20191121013836.mp4"""
+	those times. Uses file modified date."""
 	filelist = get_mp4s()
 	totalsize = 0
 	for f in filelist:

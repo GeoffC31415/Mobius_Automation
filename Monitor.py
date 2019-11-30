@@ -8,8 +8,12 @@ from datetime import timedelta as td
 
 TIME_SETTINGS = {
 	'daylight': {
-		'on': (8,22),
-		'devices': ['lamp', 'led_lights']
+		'on': (6,21),
+		'devices': ['led_lights']
+	},
+	'sunny': {
+		'on': (10,18),
+		'devices': ['lamp']
 	},
 	'rains': {
 		'on': (1,23),
@@ -24,6 +28,10 @@ THERMO_SETTINGS = {
 }
 
 def main(args):
+	
+	print(str(time.ctime()) + '========================')
+	print(str(time.ctime()) + '    Monitor Starting')
+	print(str(time.ctime()) + '========================')
 		
 	logging_pause = 10
 	relay_pause = 30
