@@ -1,14 +1,16 @@
 from __future__ import print_function
 from influxdb import InfluxDBClient
 import time
+import json
 
-# InFlux DB variables for storing data points
-host = "localhost"
-port = 8086
-dbname = "Mobius"
+def get_secrets():
+	with open('/home/pi/Documents/Mobius/secret.txt') as s:
+		secrets = json.load(s)
+	return secrets
 
 # Create the InfluxDB object as root
-client = InfluxDBClient(host=host, port=port, database=dbname)
+influxaccount = get_secrets()['InfluxAccount']
+client = InfluxDBClient(**influxaccount)
 
 def write(data):
 	try:
