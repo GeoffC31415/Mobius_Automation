@@ -17,7 +17,7 @@ def write(data):
 		client.write_points(data)
 		return True
 	except:
-		print(str(time.ctime()) + "    Error writing data to influx")
+		# print(str(time.ctime()) + "    Error writing data to influx")
 		return False
 
 def read(qry):
