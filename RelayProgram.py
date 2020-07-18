@@ -13,6 +13,18 @@ verbose = False
 TEMPQRY      = 'select mean(Water_Temp) from vivarium where time > now() - 5m'
 TEMPNOW		 = 'select Water_Temp from vivarium order by time desc limit 1'
 
+# Stepper sequencing
+HALFSTEP = [
+	[1, 0, 0, 0],
+	[1, 1, 0, 0],
+	[0, 1, 0, 0],
+	[0, 1, 1, 0],
+	[0, 0, 1, 0],
+	[0, 0, 1, 1],
+	[0, 0, 0, 1],
+	[1, 0, 0, 1]
+]
+
 # Order here is relay 1 to 4
 device_pins   = {
 	'lamp': 26,
@@ -22,7 +34,8 @@ device_pins   = {
 	'led_lights': 12,
 	'fountain': 16,
 	'lowvolt_relay3': 20,
-	'lowvolt_relay4': 21
+	'lowvolt_relay4': 21,
+	'stepper': [18, 23, 24, 25]
 }
 device_status = {
 	'lamp': 0,
@@ -34,6 +47,8 @@ device_status = {
 	'lowvolt_relay3': 0,
 	'lowvolt_relay4': 0	
 } # 1 on 0 off
+
+
 
 def set_timer_devices(settings):
 	for period in settings:
@@ -145,25 +160,35 @@ def init_relays():
 	# Initialise relays
 	print(str(time.ctime()) + '    Initialising all outputs to off...')
 	for key in device_pins:
-		GPIO.setup(device_pins[key], GPIO.OUT)
-		GPIO.output(device_pins[key], GPIO.HIGH)
-		influxlog('{}_status'.format(key),False)
+		if isinstance(device_pins[key], list):
+			for pin in device_pins[key]:
+				GPIO.setup(pin, GPIO.OUT)
+				GPIO.output(pin, 0)
+			influxlog('{}_status'.format(key),False)				
+		else:
+			GPIO.setup(device_pins[key], GPIO.OUT)
+			GPIO.output(device_pins[key], GPIO.HIGH)
+			influxlog('{}_status'.format(key),False)
 		
 
 def main(args): 
-	
 	init_relays()
 	
-	# Primary loop
-	while 1:
-		curdt = dt.now()
-		
-		# Set all main relays
-		set_relay('lamp', getLightStatus(curdt))
-		set_relay('heatpad_backwall', getHeaterStatus())
-		set_relay('heatpad_underlog', getHeaterStatus())
-				
-		time.sleep(30)
+	try:
+		# Primary loop
+		while 1:
+			curdt = dt.now()
+			
+			# Set all main relays
+			set_relay('lamp', getLightStatus(curdt))
+			set_relay('heatpad_backwall', getHeaterStatus())
+			set_relay('heatpad_underlog', getHeaterStatus())
+					
+			time.sleep(30)
+	except Exception as e:
+		print(e)
+	finally:
+		GPIO.cleanup()
 
 if __name__ == '__main__':
     import sys
