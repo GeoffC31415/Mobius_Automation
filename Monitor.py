@@ -22,7 +22,7 @@ TIME_SETTINGS = {
 }
 THERMO_SETTINGS = {
 	'main': {
-		'target': 33,
+		'target': 35,
 		'devices': ['heatpad_backwall','heatpad_underlog']
 	}
 }
