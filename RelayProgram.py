@@ -2,7 +2,6 @@ from __future__ import print_function
 import RPi.GPIO as GPIO
 import time
 import os
-import thread
 import InfluxHandler
 from datetime import datetime as dt
 from datetime import timedelta as td
@@ -35,7 +34,7 @@ device_pins   = {
 	'fountain': 16,
 	'lowvolt_relay3': 20,
 	'lowvolt_relay4': 21,
-	'stepper': [18, 23, 24, 25]
+	#'stepper': [18, 23, 24, 25]
 }
 device_status = {
 	'lamp': 0,
