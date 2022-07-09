@@ -22,7 +22,7 @@ def write(data):
         return True
     except Exception as err:
         print(str(time.ctime()) + "    Error writing data to influx")
-        print(str(time.ctime()) + "    " + str(err))
+        # print(str(time.ctime()) + "    " + str(err))
         return False
 
 
