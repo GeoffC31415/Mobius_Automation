@@ -21,11 +21,11 @@ setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: POSIX :: Linux",
     ],
-    python_requires=">=3.5",
+    python_requires=">=3.6",
     install_requires=requirements,
     entry_points={
         "console_scripts": [
             "mobius=mobius.main:main",
         ],
     },
-) 
+)
