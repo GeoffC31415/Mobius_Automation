@@ -51,3 +51,15 @@ mobius/
 3. Add comprehensive error handling
 4. Write tests for critical components
 5. Gradually phase out the old code
+
+## Installation
+pip install -e .
+   
+### Basic usage
+mobius
+   
+### With debug logging
+mobius --debug
+   
+### With custom config
+mobius --config /path/to/config.json
