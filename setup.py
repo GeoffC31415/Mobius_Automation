@@ -23,6 +23,15 @@ setup(
     ],
     python_requires=">=3.5",
     install_requires=requirements,
+    extras_require={
+        "dev": [
+            "pytest==7.3.1",
+            "pytest-cov==4.1.0",
+            "black==23.3.0",
+            "isort==5.12.0",
+            "mypy==1.3.0",
+        ],
+    },
     entry_points={
         "console_scripts": [
             "mobius=mobius.main:main",
