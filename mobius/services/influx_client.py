@@ -101,7 +101,7 @@ class InfluxClient:
                 "run": self.run_id
             },
             "fields": {
-                f"{device}_status": bool(state)
+                "{device}_status".format(device=device): bool(state)
             }
         }]
         
