@@ -80,7 +80,7 @@ class VivController:
                 try:
                     self._process_sensors()
                 except Exception as e:
-                    self.logger.error(f"Error processing sensors: {e}", exc_info=True)
+                    self.logger.error("Error processing sensors: {}".format(e))
             
             # 2. Check and update relay states based on time and temperature
             if current_time >= (self.last_relay_check + timedelta(seconds=settings.RELAY_CHECK_INTERVAL)):
@@ -88,7 +88,7 @@ class VivController:
                 try:
                     self._process_relays()
                 except Exception as e:
-                    self.logger.error(f"Error processing relays: {e}", exc_info=True)
+                    self.logger.error("Error processing relays: {}".format(e))
             
             # 3. Perform file maintenance
             if current_time >= (self.last_file_maintenance + timedelta(seconds=settings.FILE_MAINTENANCE_INTERVAL)):
@@ -96,7 +96,7 @@ class VivController:
                 try:
                     self._process_files()
                 except Exception as e:
-                    self.logger.error(f"Error processing files: {e}", exc_info=True)
+                    self.logger.error("Error processing files: {}".format(e))
             
             # Sleep a short time to prevent CPU thrashing
             time.sleep(0.1)

@@ -6,7 +6,7 @@ Handles all interactions with InfluxDB for data logging
 import json
 import logging
 import os
-from typing import Dict, List, Any, Union
+from typing import Dict, List, Any
 
 try:
     from influxdb import InfluxDBClient
@@ -54,7 +54,7 @@ class InfluxClient:
                     'database': os.environ.get('INFLUX_DB', 'vivarium')
                 }
         except Exception as e:
-            self.logger.error(f"Error loading InfluxDB credentials: {e}", exc_info=True)
+            self.logger.error("Error loading InfluxDB credentials: {}".format(e))
             return {
                 'host': 'localhost',
                 'port': 8086,
@@ -148,7 +148,7 @@ class InfluxClient:
             self.logger.debug("Data written to InfluxDB successfully")
             return True
         except Exception as e:
-            self.logger.error(f"Error writing to InfluxDB: {e}")
+            self.logger.error("Error writing to InfluxDB: {}".format(e))
             return False
             
     def read_query(self, query: str) -> Any:
@@ -170,5 +170,5 @@ class InfluxClient:
             client.close()
             return results
         except Exception as e:
-            self.logger.error(f"Error querying InfluxDB: {e}")
+            self.logger.error("Error querying InfluxDB: {}".format(e))
             return None 

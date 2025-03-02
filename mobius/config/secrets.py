@@ -31,9 +31,9 @@ def get_secrets(secrets_path: Optional[str] = None) -> Dict[str, Any]:
         if os.path.exists(path):
             with open(path, 'r') as f:
                 secrets = json.load(f)
-            logger.info(f"Loaded secrets from {path}")
+            logger.info("Loaded secrets from {path}".format(path=path))
     except Exception as e:
-        logger.warning(f"Could not load secrets from file: {e}")
+        logger.warning("Could not load secrets from file: {}".format(e))
     
     # Use environment variables as fallback or override
     env_secrets = {
@@ -55,4 +55,4 @@ def get_secrets(secrets_path: Optional[str] = None) -> Dict[str, Any]:
             else:
                 secrets[category] = cleaned
     
-    return secrets 
+    return secrets

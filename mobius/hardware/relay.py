@@ -56,7 +56,7 @@ class RelayManager:
                 # Log initial state
                 self._log_device_state(device, False)
         except Exception as e:
-            self.logger.error(f"Error setting up GPIO: {e}", exc_info=True)
+            self.logger.error("Error setting up GPIO: {}".format(e))
             raise
             
     def update_time_devices(self, time_settings):
@@ -102,7 +102,7 @@ class RelayManager:
         """
         # Check if device exists
         if device not in settings.DEVICE_PINS:
-            self.logger.error(f"Device {device} not found in settings")
+            self.logger.error("Device {device} not found in settings".format(device=device))
             return False
             
         # Skip if no change needed
@@ -119,17 +119,17 @@ class RelayManager:
                 
                 # Log to console
                 action = "ON" if state else "OFF"
-                self.logger.info(f"Setting {device} {action}")
+                self.logger.info("Setting {device} {action}".format(device=device, action=action))
                 
                 # Small delay to prevent rapid relay switching
                 time.sleep(0.1)
             except Exception as e:
-                self.logger.error(f"Error setting relay for {device}: {e}")
+                self.logger.error("Error setting relay for {device}: {e}".format(device=device, e=e))
                 return False
         else:
             # Simulation mode
             action = "ON" if state else "OFF"
-            self.logger.info(f"[SIMULATION] Setting {device} {action}")
+            self.logger.info("[SIMULATION] Setting {device} {action}".format(device=device, action=action))
         
         # Update status and log to InfluxDB
         self.device_status[device] = state
@@ -177,6 +177,6 @@ class RelayManager:
                 GPIO.cleanup()
                 self.logger.info("GPIO cleanup complete")
             except Exception as e:
-                self.logger.error(f"Error during GPIO cleanup: {e}")
+                self.logger.error("Error during GPIO cleanup: {}".format(e))
         else:
             self.logger.info("Simulation mode - no GPIO cleanup needed") 

@@ -4,7 +4,6 @@ Reptile Vivarium Monitoring System - Main Entry Point
 This script initializes and starts the vivarium monitoring and control system.
 """
 
-import os
 import sys
 import signal
 import logging
@@ -15,7 +14,6 @@ from pathlib import Path
 sys.path.append(str(Path(__file__).parent.parent))
 
 from mobius.core.controller import VivController
-from mobius.config import settings
 
 
 def setup_logging(log_level=logging.INFO):
@@ -63,7 +61,7 @@ def main():
         controller = VivController()
         controller.start()
     except Exception as e:
-        logger.error(f"Error in main execution: {e}", exc_info=True)
+        logger.error("Error in main execution: {}".format(e))
         return 1
     
     return 0

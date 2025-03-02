@@ -5,10 +5,9 @@ Handles video file management and cleanup
 
 import os
 import glob
-import time
 import logging
 from datetime import datetime, timedelta
-from typing import List, Set, Tuple, Optional
+from typing import List, Set, Tuple
 
 from mobius.config import settings
 
@@ -31,7 +30,7 @@ class FileManager:
         try:
             return set(glob.glob(os.path.join(self.source_path, '*.mp4')))
         except Exception as e:
-            self.logger.error(f"Error getting MP4 files: {e}")
+            self.logger.error("Error getting MP4 files: {}".format(e))
             return set()
             
     def get_total_size(self, start_date: datetime, end_date: datetime) -> float:
@@ -55,7 +54,7 @@ class FileManager:
                     
             return total_size
         except Exception as e:
-            self.logger.error(f"Error calculating total size: {e}")
+            self.logger.error("Error calculating total size: {}".format(e))
             return 0
             
     def clean_videos(self, min_hour: int, max_hour: int, max_size: float) -> None:
@@ -70,7 +69,7 @@ class FileManager:
             remaining_files = self.get_mp4s()
             total_file_count = len(remaining_files)
             
-            self.logger.info(f"Checking {total_file_count} videos for cleanup")
+            self.logger.info("Checking {total_file_count} videos for cleanup".format(total_file_count=total_file_count))
             
             # Define filter functions
             filter_functions = [
@@ -91,7 +90,7 @@ class FileManager:
                 }
             ]
             
-            log_message = ''
+            log_message = '\n'.join([filter_obj['desc'].format(len(filtered_files), size_kb) for filter_obj in filter_functions])
             files_to_remove = []
             
             # Apply each filter
@@ -102,18 +101,17 @@ class FileManager:
                 )
                 
                 if filtered_files:
-                    log_message += f"\n{filter_obj['desc'].format(len(filtered_files), size_kb)}"
                     files_to_remove.extend(filtered_files)
                     remaining_files -= set(filtered_files)
             
             # Log results
-            self.logger.info(f"Checked {total_file_count} videos{log_message}")
+            self.logger.info("Checked {total_file_count} videos {log_message}".format(total_file_count=total_file_count, log_message=log_message))
             
             # Remove files
             self._remove_files(files_to_remove)
             
         except Exception as e:
-            self.logger.error(f"Error cleaning videos: {e}", exc_info=True)
+            self.logger.error("Error cleaning videos: {}".format(e))
             
     def _filter_by_time(self, file_list: Set[str], min_hour: int, max_hour: int) -> Tuple[List[str], float]:
         """Filter files by time of day they were created
@@ -145,7 +143,7 @@ class FileManager:
                     in_time.append(file_path)
                     total_size += os.path.getsize(file_path)
             except Exception as e:
-                self.logger.error(f"Error processing file {file_path}: {e}")
+                self.logger.error("Error processing file {file_path}: {e}".format(file_path=file_path, e=e))
                 
         return in_time, total_size / 1024
         
@@ -169,7 +167,7 @@ class FileManager:
                     in_size.append(file_path)
                     total_size += size
             except Exception as e:
-                self.logger.error(f"Error getting size for {file_path}: {e}")
+                self.logger.error("Error getting size for {file_path}: {e}".format(file_path=file_path, e=e))
                 
         return in_size, total_size / 1024
         
@@ -193,7 +191,7 @@ class FileManager:
                     old_files.append(file_path)
                     total_size += os.path.getsize(file_path)
             except Exception as e:
-                self.logger.error(f"Error checking age for {file_path}: {e}")
+                self.logger.error("Error checking age for {file_path}: {e}".format(file_path=file_path, e=e))
                 
         return old_files, total_size / 1024
         
@@ -209,6 +207,6 @@ class FileManager:
                 os.remove(file_path)
                 count += 1
             except Exception as e:
-                self.logger.error(f"Could not remove file {file_path}: {e}")
+                self.logger.error("Could not remove file {file_path}: {e}".format(file_path=file_path, e=e))
                 
-        self.logger.info(f"Removed {count} files") 
+        self.logger.info("Removed {count} files".format(count=count)) 

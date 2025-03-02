@@ -9,7 +9,7 @@ import subprocess
 import glob
 import os
 import time
-from typing import Dict, List, Tuple, Any, Optional
+from typing import Dict, List, Tuple
 
 try:
     import Adafruit_DHT
@@ -47,13 +47,13 @@ class SensorManager:
             device_folders = glob.glob(settings.ONEWIRE_BASE_DIR + settings.ONEWIRE_DEVICE_PREFIX)
             if device_folders:
                 self.device_file = device_folders[0] + '/w1_slave'
-                self.logger.info(f"Found one-wire device: {device_folders[0]}")
+                self.logger.info("Found one-wire device: {}".format(device_folders[0]))
                 self.onewire_available = True
             else:
                 self.logger.warning("No one-wire temperature sensors found")
                 self.onewire_available = False
         except Exception as e:
-            self.logger.error(f"Error initializing one-wire: {e}", exc_info=True)
+            self.logger.error("Error initializing one-wire: {}".format(e))
             self.onewire_available = False
             
     def _init_dht(self):
@@ -72,7 +72,7 @@ class SensorManager:
             try:
                 return self._read_onewire_temp()
             except Exception as e:
-                self.logger.error(f"Error reading water temperature: {e}")
+                self.logger.error("Error reading water temperature: {}".format(e))
                 
         # Return a reasonable default if sensor read fails
         self.logger.warning("Using simulated temperature value")
@@ -89,7 +89,7 @@ class SensorManager:
         """
         if not self.dht_available or sensor_id > len(settings.DHT_PINS):
             # Return simulated data if sensor not available
-            self.logger.debug(f"Using simulated data for DHT sensor {sensor_id}")
+            self.logger.debug("Using simulated data for DHT sensor {sensor_id}".format(sensor_id=sensor_id))
             return (
                 60.0 + random.normalvariate(0, 5),  # Simulated humidity around 60%
                 25.0 + random.normalvariate(0, 2)   # Simulated temp around 25°C
@@ -116,7 +116,7 @@ class SensorManager:
             return (humidity, temperature)
             
         except Exception as e:
-            self.logger.error(f"Error reading DHT sensor {sensor_id}: {e}")
+            self.logger.error("Error reading DHT sensor {sensor_id}: {e}".format(sensor_id=sensor_id, e=e))
             return (-1, -1)  # Error indicator
             
     def get_all_readings(self) -> Dict[str, float]:
@@ -137,12 +137,8 @@ class SensorManager:
             humidity, temperature = self.get_dht_reading(sensor_id)
             
             # Set sensor name based on ID
-            if sensor_id == 4:
-                humidity_key = f"DHT4_Hum"
-                temperature_key = f"DHT4_Temp"
-            else:
-                humidity_key = f"DHT{sensor_id}_Hum"
-                temperature_key = f"DHT{sensor_id}_Temp"
+            humidity_key = "DHT{sensor_id}_Hum".format(sensor_id=sensor_id)
+            temperature_key = "DHT{sensor_id}_Temp".format(sensor_id=sensor_id)
             
             # Filter out invalid readings
             if humidity >= 35 and humidity < 100:
@@ -182,7 +178,7 @@ class SensorManager:
             else:
                 return -1
         except Exception as e:
-            self.logger.error(f"Error reading one-wire sensor: {e}")
+            self.logger.error("Error reading one-wire sensor: {}".format(e))
             return -1
             
     def _read_temp_raw(self) -> List[str]:
@@ -205,7 +201,7 @@ class SensorManager:
             lines = out_decode.split('\n')
             return lines
         except Exception as e:
-            self.logger.error(f"Error reading raw temperature: {e}")
+            self.logger.error("Error reading raw temperature: {}".format(e))
             return ["", ""]
             
     def cleanup(self):
