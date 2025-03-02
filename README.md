@@ -1,39 +1,53 @@
-# Mobius_Automation
+# Reptile Vivarium Monitoring System
 
-## Summary
+A Python-based system for monitoring and controlling a reptile vivarium environment including temperature, humidity, lighting, and file management.
 
-This repo contains all the main monitoring and logging code. It's structured according to the following hierarchy:
+## Proposed Structure
 
-1. Monitor.py
+```
+mobius/
+├── __init__.py
+├── config/
+│   ├── __init__.py
+│   ├── settings.py         # All settings in one place
+│   └── secrets.py          # Handles secrets management
+├── core/
+│   ├── __init__.py
+│   ├── controller.py       # Main controller class
+│   └── scheduler.py        # Handles timing of various operations
+├── hardware/
+│   ├── __init__.py
+│   ├── relay.py            # Relay control
+│   ├── sensor.py           # Sensor abstractions
+│   └── drivers/
+│       ├── __init__.py
+│       ├── dht.py          # DHT sensor driver
+│       └── onewire.py      # One-wire temperature sensor driver
+├── services/
+│   ├── __init__.py
+│   ├── influx_client.py    # InfluxDB interface
+│   ├── file_manager.py     # File management functionality
+│   └── logging.py          # Logging service
+├── utils/
+│   ├── __init__.py
+│   └── helpers.py          # Helper functions
+└── main.py                 # Application entry point
+```
 
-This file is the main loop which governs the readings, relays and logging of data. It imports InFluxLogger as the main sensor capture code, and RelayProgram as the codebase which controls the relays and automated control settings. Designed to be run from a terminal window.
+## Key Design Improvements
 
-You can set main loop timings here, but little else.
+1. **Object-Oriented Approach**: Structured as classes with single responsibilities
+2. **Configuration Management**: Centralized settings and secrets
+3. **Separation of Concerns**: Hardware, services, and business logic separated
+4. **Dependency Injection**: Components receive dependencies rather than importing globally
+5. **Error Handling**: Improved error handling and recovery
+6. **Testability**: Structure facilitates unit testing
+7. **Extensibility**: Easy to add new sensors and devices
 
-2. InFluxLogger.py
+## Transition Plan
 
-This file contains the high level functions for capturing a set of sensor readings. It imports PullReading.py for the specific handling and scaling of inputs of the various sensors, and combines them all together into a single json object for writing to InfluxDB. It also imports InfluxHandler for the connection and read/write requests to Influx itself. Designed to be imported, but can also run independently from a terminal for logging only.
-
-You can set error filters here for the sensors (humidity must be <100% for example).
-
-3. RelayProgram.py
-
-This file contains the functions for determining timings for lighting, thermostat settings, and the lower level functions for setting individual devices. It also imports InfluxHandler for reading capture from the database, and also writing the states of the devices on change. Note - this no longer controls the Pi Camera which instead is handled by a seperate service not in the repo, for snapshots and motion capture. Designed to be imported, but can also run independently from a terminal for device control only. Note - this will quickly result in heaters being fixed as on, if the database isn't updated too.
-
-You can set target temps for heaters, timing for lights, and also pin mappings for relays here.
-
-4. InfluxHandler.py
-
-This file contains simple wrapper functions for DB handling. Note - this database is not publically available and can only be accessed behind the NAT.
-
-You can set the DB connection details here, except password handling.
-
-5. PullReading.py
-
-Contains all the specific sensor handling. Supports DHT11's, and the custom high precision heat sensor which drives the thermostat control.
-
-You can set pin mappings to the sensors, as well as the amount of jitter to apply to the integers received from the DHT11's (allows the ability to distinguish individual readings, instead of just a straight line).
-
-6. TakePicture.py
-
-This is a simple test script for manual photo taking. Simply dumps a photo to Pi desktop when run from terminal.
+1. Create the new structure with minimal functionality
+2. Migrate core functions one at a time
+3. Add comprehensive error handling
+4. Write tests for critical components
+5. Gradually phase out the old code
