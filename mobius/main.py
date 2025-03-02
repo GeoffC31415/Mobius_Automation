@@ -18,11 +18,38 @@ from mobius.core.controller import VivController
 
 def setup_logging(log_level=logging.INFO):
     """Configure logging for the application"""
+    # Basic configuration for console output
     logging.basicConfig(
         level=log_level,
         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
         datefmt='%Y-%m-%d %H:%M:%S'
     )
+    
+    # Add a rotating file handler limited to 1MB
+    from logging.handlers import RotatingFileHandler
+    import os
+    
+    # Create logs directory if it doesn't exist
+    log_dir = os.path.expanduser('~/mobius_logs')
+    os.makedirs(log_dir, exist_ok=True)
+    
+    log_file = os.path.join(log_dir, 'mobius.log')
+    
+    # Create a rotating file handler (1MB max size, keep 3 backup files)
+    file_handler = RotatingFileHandler(
+        log_file,
+        maxBytes=1024 * 1024,  # 1MB
+        backupCount=3
+    )
+    
+    # Set the formatter
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    file_handler.setFormatter(formatter)
+    
+    # Add the handler to the root logger
+    logging.getLogger().addHandler(file_handler)
+    
+    # Return the logger
     return logging.getLogger('mobius')
 
 
