@@ -90,8 +90,8 @@ class FileManager:
                 }
             ]
             
-            log_message = '\n'.join([filter_obj['desc'].format(len(filtered_files), size_kb) for filter_obj in filter_functions])
             files_to_remove = []
+            log_messages = []
             
             # Apply each filter
             for filter_obj in filter_functions:
@@ -103,8 +103,10 @@ class FileManager:
                 if filtered_files:
                     files_to_remove.extend(filtered_files)
                     remaining_files -= set(filtered_files)
+                    log_messages.append(filter_obj['desc'].format(len(filtered_files), size_kb))
             
             # Log results
+            log_message = '\n'.join(log_messages)
             self.logger.info("Checked {total_file_count} videos {log_message}".format(total_file_count=total_file_count, log_message=log_message))
             
             # Remove files
