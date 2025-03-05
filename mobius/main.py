@@ -36,7 +36,7 @@ def setup_logging(log_level=logging.INFO):
     
     # Create a log file with today's date in the filename
     today = datetime.datetime.now().strftime('%Y%m%d')
-    log_file = os.path.join(log_dir, f'mobius_{today}.log')
+    log_file = os.path.join(log_dir, 'mobius_{}.log'.format(today))
     
     # Create a file handler
     file_handler = logging.FileHandler(log_file)
@@ -57,9 +57,9 @@ def setup_logging(log_level=logging.INFO):
         for old_file in log_files[:-30]:
             try:
                 os.remove(old_file)
-                logging.debug(f"Removed old log file: {old_file}")
+                logging.debug("Removed old log file: {}".format(old_file))
             except Exception as e:
-                logging.warning(f"Failed to remove old log file {old_file}: {e}")
+                logging.warning("Failed to remove old log file {}: {}".format(old_file, e))
     
     # Return the logger
     return logging.getLogger('mobius')
