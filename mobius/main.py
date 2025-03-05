@@ -25,22 +25,21 @@ def setup_logging(log_level=logging.INFO):
         datefmt='%Y-%m-%d %H:%M:%S'
     )
     
-    # Add a rotating file handler limited to 1MB
-    from logging.handlers import RotatingFileHandler
+    # Add a rotating file handler with date-based filenames
     import os
+    import datetime
+    import glob
     
     # Create logs directory if it doesn't exist
     log_dir = os.path.expanduser('~/mobius_logs')
     os.makedirs(log_dir, exist_ok=True)
     
-    log_file = os.path.join(log_dir, 'mobius.log')
+    # Create a log file with today's date in the filename
+    today = datetime.datetime.now().strftime('%Y%m%d')
+    log_file = os.path.join(log_dir, f'mobius_{today}.log')
     
-    # Create a rotating file handler (1MB max size, keep 3 backup files)
-    file_handler = RotatingFileHandler(
-        log_file,
-        maxBytes=1024 * 1024,  # 1MB
-        backupCount=3
-    )
+    # Create a file handler
+    file_handler = logging.FileHandler(log_file)
     
     # Set the formatter
     formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -48,6 +47,19 @@ def setup_logging(log_level=logging.INFO):
     
     # Add the handler to the root logger
     logging.getLogger().addHandler(file_handler)
+    
+    # Clean up old log files (keep only the latest 30 days)
+    log_files = glob.glob(os.path.join(log_dir, 'mobius_*.log'))
+    if len(log_files) > 30:
+        # Sort files by modification time (oldest first)
+        log_files.sort(key=os.path.getmtime)
+        # Remove the oldest files, keeping only the latest 30
+        for old_file in log_files[:-30]:
+            try:
+                os.remove(old_file)
+                logging.debug(f"Removed old log file: {old_file}")
+            except Exception as e:
+                logging.warning(f"Failed to remove old log file {old_file}: {e}")
     
     # Return the logger
     return logging.getLogger('mobius')
