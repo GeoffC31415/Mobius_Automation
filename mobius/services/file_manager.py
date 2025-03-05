@@ -69,7 +69,8 @@ class FileManager:
             remaining_files = self.get_mp4s()
             total_file_count = len(remaining_files)
             
-            self.logger.info("Checking {total_file_count} videos for cleanup".format(total_file_count=total_file_count))
+            if total_file_count > 0:
+                self.logger.info("Checking {total_file_count} videos for cleanup".format(total_file_count=total_file_count))
             
             # Define filter functions
             filter_functions = [
