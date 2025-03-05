@@ -106,8 +106,9 @@ class FileManager:
                     log_messages.append(filter_obj['desc'].format(len(filtered_files), size_kb))
             
             # Log results
-            log_message = '\n'.join(log_messages)
-            self.logger.info("Checked {total_file_count} videos {log_message}".format(total_file_count=total_file_count, log_message=log_message))
+            if log_messages:
+                log_message = '\n'.join(log_messages)
+                self.logger.info("Checked {total_file_count} videos {log_message}".format(total_file_count=total_file_count, log_message=log_message))
             
             # Remove files
             self._remove_files(files_to_remove)
@@ -211,4 +212,5 @@ class FileManager:
             except Exception as e:
                 self.logger.error("Could not remove file {file_path}: {e}".format(file_path=file_path, e=e))
                 
-        self.logger.info("Removed {count} files".format(count=count)) 
+        if count > 0:
+            self.logger.info("Removed {count} files".format(count=count)) 
