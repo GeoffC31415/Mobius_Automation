@@ -4,6 +4,7 @@ Handles all relay hardware interactions for controlling devices
 """
 
 import time
+import math
 import logging
 from datetime import datetime
 
@@ -82,9 +83,21 @@ class RelayManager:
             thermo_settings: Dictionary of temperature settings from settings.py
             current_temp: Current temperature reading
         """
+        current_time = datetime.now()
+        
         for zone, config in thermo_settings.items():
-            # Determine if temperature is below target (needs heating)
-            should_be_on = current_temp <= config['target']
+            should_be_on = True
+            
+            if 'on' in config:
+                should_be_on &= self._in_time_period(current_time, config['on'])
+                
+            if current_temp != settings.ONEWIRE_FALLBACK:
+                # Determine if temperature is below target (needs heating)
+                should_be_on &= bool(current_temp <= config['target'])
+            else:
+                # One wire might be failed
+                # Randomise the heat relays to prevent extremes
+                should_be_on &= bool(math.random() > 0.5)
             
             # Set each device for this temperature zone
             for device in config['devices']:

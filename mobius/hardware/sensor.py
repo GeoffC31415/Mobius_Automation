@@ -76,7 +76,7 @@ class SensorManager:
                 
         # Return a reasonable default if sensor read fails
         self.logger.warning("Using simulated temperature value")
-        return 25.0  # Default fallback
+        return settings.ONEWIRE_FALLBACK  # Default fallback
     
     def get_dht_reading(self, sensor_id: int) -> Tuple[float, float]:
         """Get humidity and temperature from a DHT sensor
@@ -132,7 +132,7 @@ class SensorManager:
         readings['Water_Temp'] = float(water_temp)
         
         # Get DHT readings (3 sensors with IDs 1, 2, 4)
-        dht_sensors = [1, 2, 4]
+        dht_sensors = []
         for sensor_id in dht_sensors:
             humidity, temperature = self.get_dht_reading(sensor_id)
             
