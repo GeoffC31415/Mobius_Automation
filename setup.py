@@ -27,7 +27,7 @@ setup(
         "dev": [
             "pytest==7.3.1",
             "pytest-cov==4.1.0",
-            "black==23.3.0",
+            "black==24.3.0",
             "isort==5.12.0",
             "mypy==1.3.0",
         ],
